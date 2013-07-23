@@ -2,7 +2,7 @@
 
 class Module_Calendar extends Module {
 
-	public $version = '1.3.0'; // for PyroCMS 2.1.x and support php5.4
+	public $version = '1.3.1'; // for PyroCMS 2.2.x and support php5.4
 
 	public function info()
 	{

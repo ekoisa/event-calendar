@@ -41,7 +41,6 @@
 						beingShown = false;
 						shown = true;
 					});*/
-
 					if($('#calclip').parent().parent().css('overflow-x')=='hidden'){
 						overHidden = true;
 						$('#calclip').parent().parent().css('overflow-x', 'visible');

@@ -4,7 +4,7 @@ class Admin extends Admin_Controller {
 
     protected $section = 'calendar home';
     protected $validation_rules;
-	protected $data;
+	private $data;
     
     public function __construct()
     {
