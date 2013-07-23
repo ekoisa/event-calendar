@@ -1,6 +1,7 @@
 <section class="title"><h4><?php echo lang('calendar_edit_label');?></h4>
 </section>
 <section class="item">
+	<div class="content">
 
 <?php
 //check if there is any alert message set
@@ -81,6 +82,5 @@ echo form_open(uri_string());?>
 	<?php $this->load->view('admin/partials/buttons', array('buttons' => array('save', 'cancel'))); ?>
 </div>
 	<?php form_close() ;?>
-	
+	</div>
 </section>
-	

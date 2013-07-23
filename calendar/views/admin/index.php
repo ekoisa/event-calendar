@@ -3,6 +3,7 @@
 </section>
 
 <section class="item">
+	<div class="content">
 
 <?php if ($calendar) : ?>
 
@@ -21,5 +22,5 @@
 <?php else : ?>
 	<div class="no_data"><?php echo lang('calendar_no_data'); ?></div>
 <?php endif; ?>
-
+	</div>
 </section>

@@ -3,6 +3,7 @@
 </section>
 
 <section class="item">
+	<div class="content">
 <span id="progress_loading" style="display:none;"><img src="<?php echo site_url($this->module_details['path'].'/img/progress.gif'); ?>"/></span>
 
 	<?php echo form_open(uri_string(), 'class="crud"'); ?>
@@ -71,5 +72,5 @@
 
 	<?php echo form_close(); ?>
 	
-
+	</div>
 </section>
