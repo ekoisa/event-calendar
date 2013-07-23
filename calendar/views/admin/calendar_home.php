@@ -1,6 +1,7 @@
 <section class="title"><h4><?php echo lang('calendar_dashboard_label');?></h4>
 </section>
 <section class="item">
+	<div class="content">
  <div id="calmain">
 
 	<h2><?php echo $current_month_text; ?></h2>
@@ -111,5 +112,5 @@
 		</tfoot>
 	</table>
 </div>
+</div>
 </section>
-	
