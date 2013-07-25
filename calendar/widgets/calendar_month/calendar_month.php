@@ -92,6 +92,15 @@ class Widget_Calendar_month extends Widgets
             $js_array = array('js_name'=>'');
         }
         
+		// $v4 = $this->variables_m->get_by('name', 'modcalendar_repeat_emersion');
+        $vname = 'modcalendar_repeat_emersion';
+        if(!$v4 = $this->pyrocache->get('calendar_cache'.DIRECTORY_SEPARATOR.'get_by_'.$vname))
+        {
+            $v4 = $this->variables_m->get_by('name', $vname);
+            $this->pyrocache->write($v4, 'calendar_cache'.DIRECTORY_SEPARATOR.'get_by_'.$vname);
+        }
+        $ar_default_repeat = array('daily'=>array(0, 1), 'weekly'=>array(0, 1), 'monthly'=>array(0, 1));
+        $this->data->repeat_emersion = empty($v4->data) ? $ar_default_repeat : json_decode($v4->data, true);
         
         $this->set_data(time());
 		return array(
@@ -106,8 +115,8 @@ class Widget_Calendar_month extends Widgets
         $year = date('Y', $srctime);
         $month = date('m', $srctime);
         $time = strtotime($year.'-'.$month.'-01');
-	    // $this->data->events=$this->calendar_m->get_events($time, true);
-	    $this->data->events = $this->pyrocache->model('calendar_m', 'get_events', array($time, true, true, true), 14400);
+	    // $this->data->events=$this->calendar_m->get_events($time, true, true, true, $this->data->repeat_emersion);
+	    $this->data->events = $this->pyrocache->model('calendar_m', 'get_events', array($time, true, true, true, $this->data->repeat_emersion), 14400);
 		
 	    $today = date("Y/n/j", time());
 	    $this->data->today= $today;

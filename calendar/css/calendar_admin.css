@@ -52,9 +52,12 @@ li.date-meta div.selector span {
 li.date-meta label.time-meta {
     width: 80px !important; margin-right:10px !important; text-align: center;
 }
-.width-10{
-    width:10px;
-}
+.width-10{width:10px; }
+.width-50{width:50px !important; display: inline-block;}
+.width-75{width:75px !important; display: inline-block;}
+.width-100{width:100px !important; display: inline-block;}
+.width-125{width:125px !important; display: inline-block;}
+
 #calmain table {
 	border-collapse: separate;
 	border: 1px solid #9DABCE;

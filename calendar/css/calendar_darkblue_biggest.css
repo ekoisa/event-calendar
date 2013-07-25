@@ -37,7 +37,7 @@ li.date-meta label.time-meta {
 	color: #cdcdcd; text-shadow: none;
 	position: relative;
 	padding:25px 5px; list-style:none;
-	float:left; clear:right;
+	float:left; clear:right; margin: 0 !important;
 }
 
 #calmain .caltbl_head{

@@ -31,6 +31,9 @@ $lang['calendar_style_list']                  = 'Seznam událostí';
 $lang['calendar_detail_label']                = 'Detail akce'; 
 $lang['calendar_date_from']                   = 'Z'; 
 $lang['calendar_date_to']                     = 'na'; 
+$lang['calendar_repeat_prev']                 = 'P?edchozí'; 
+$lang['calendar_repeat_next']                 = 'Dal¨í'; 
+$lang['calendar_repeat_count']                = 'Po?et opakování'; 
 
 // titles
 $lang['calendar_create_title']               = 'Pridat událost';

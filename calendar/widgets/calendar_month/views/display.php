@@ -58,7 +58,9 @@ if($caldt): ?>
 							foreach ($caldt->events as $key=>$event){
 								if ($key == $caldt->day){
 							  	foreach ($event as $single){
-							  	    $title_link = site_url('calendar/detail/' .$single->id_eventcal .'/'.preg_replace('{[^0-9-a-zA-Z]+}', '-', $single->event_title), stripslashes($single->event_title));
+									$oridate = str_replace(' ', '-', $single->event_date_begin);
+									$strdate = substr($oridate, 0, 8).$caldt->day.substr($oridate, 10, 3);
+							  	    $title_link = site_url('calendar/detail/' .$single->id_eventcal .'/'.$strdate.'.'.preg_replace('{[^0-9-a-zA-Z]+}', '-', $single->event_title), stripslashes($single->event_title));
 							  		echo '<div class="clip_event_content">'; 					
 									echo sprintf('<span class="title"><a href="%s">%s</a></span>', $title_link, $single->event_title);
 									echo '</div>'; 

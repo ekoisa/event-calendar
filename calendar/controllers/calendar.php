@@ -36,6 +36,15 @@ class Calendar extends Public_Controller {
             $v3 = $this->variables_m->get_by('name', $vname);
             $this->pyrocache->write($v3, 'calendar_cache'.DIRECTORY_SEPARATOR.'get_by_'.$vname);
         }
+        
+		// $v4 = $this->variables_m->get_by('name', 'modcalendar_repeat_emersion');
+        $vname = 'modcalendar_repeat_emersion';
+        if(!$v4 = $this->pyrocache->get('calendar_cache'.DIRECTORY_SEPARATOR.'get_by_'.$vname))
+        {
+            $v4 = $this->variables_m->get_by('name', $vname);
+            $this->pyrocache->write($v4, 'calendar_cache'.DIRECTORY_SEPARATOR.'get_by_'.$vname);
+        }
+        
 		if(empty($this->data)){
 			$this->data = new stdClass();
 		}
@@ -44,7 +53,15 @@ class Calendar extends Public_Controller {
 			$css_name = $v1->data.'_'.$v2->data;
 		}
 		
+		$ar_default_repeat = array('daily'=>array(0, 1), 'weekly'=>array(0, 1), 'monthly'=>array(0, 1));
+		
 		$this->data->dateformat = empty($v3->data) ? 'M d, Y H:i' : $v3->data;
+		$this->data->repeat_emersion = empty($v4->data) ? $ar_default_repeat : json_decode($v4->data, true);
+		$rco = $this->data->repeat_emersion;
+		$this->data->repeat_count = 0;
+		if(!empty($rco) and !empty($rco['daily']) and !empty($rco['weekly']) and !empty($rco['monthly'])){
+			$this->data->repeat_count = intval(@$rco['daily'][0])+intval(@$rco['daily'][1])+intval(@$rco['weekly'][0])+intval(@$rco['weekly'][1])+intval(@$rco['monthly'][0])+intval(@$rco['monthly'][1]);
+		}
 		
         $this->template->append_css('module::calendar_'.$css_name.'.css');
         
@@ -149,6 +166,7 @@ class Calendar extends Public_Controller {
 
 		// $max_row = $this->calendar_m->count_event_by($arprm, 1);
 		$max_row = $this->pyrocache->model('calendar_m', 'count_event_by', array($arprm, 1));
+		// $max_row = $max_row + $this->data->repeat_count-1;
 		
 		$paging_param = array('page'=>$page, 'maxrow' => $max_row, 'pagerow' => 10, 'wide' => 2, 
 		'url'=> site_url('calendar/display/'.$year.'/'.$month.'/'.$day.'/%s'));
@@ -156,8 +174,8 @@ class Calendar extends Public_Controller {
 		$this->data->pagination = $this->libpaging->_paging($paging_param);
 		
 		
-		// $this->data->data_read = $this->calendar_m->list_event_by($arprm+array('limit'=>$this->data->pagination['limit']));
-		$this->data->data_read = $this->pyrocache->model('calendar_m', 'list_event_by', array($arprm+array('limit'=>$this->data->pagination['limit'], 'order'=>'event_date_begin ASC')));
+		//$this->data->data_read = $this->calendar_m->list_event_by($arprm+array('limit'=>$this->data->pagination['limit'], 'order'=>'event_date_begin ASC', 'repeat_setting'=>$this->data->repeat_emersion));
+		$this->data->data_read = $this->pyrocache->model('calendar_m', 'list_event_by', array($arprm+array('limit'=>$this->data->pagination['limit'], 'order'=>'event_date_begin ASC', 'repeat_setting'=>$this->data->repeat_emersion)));
 		
 		$this->data->flash_message = $this->_flash_message();
 		
@@ -191,13 +209,20 @@ class Calendar extends Public_Controller {
                 ->build('index', $this->data);
 	}
 	
-	function detail($data_read = 0){
-        
+	function detail($data_read = 0, $date_str = ""){
         if(empty($data_read)){
             $this->session->set_flashdata('notice', lang('calendar_invalid_param'));
 			redirect('calendar/display');
         }
 		
+		$last_date_str = strpos($date_str, '.');
+		if($last_date_str !== false && $last_date_str == 13){
+			$this->data->date_str = substr($date_str, 0, 10).' '.substr($date_str, 11, 2);
+			$this->data->date_url = substr($date_str, 0, 13);
+		}else{
+			$this->data->date_str = "";
+			$this->data->date_url = "";
+		}
 		
 		// $this->data->data_read = $this->calendar_m->get_event_by_id($data_read);
 		$this->data->data_read = $this->pyrocache->model('calendar_m', 'get_event_by_id', array($data_read));
@@ -228,11 +253,12 @@ class Calendar extends Public_Controller {
         // Create pagination links
         // $total_rows = $this->calendar_m->count_event_by($base_where + array('date'=> $date));
         $total_rows = $this->pyrocache->model('calendar_m', 'count_event_by', array($base_where + array('date'=> $date)));
+		// $total_rows = $total_rows + $this->data->repeat_count-1;
         $pagination = create_pagination('admin/calendar/list/', $total_rows);
 
         // Using this data, get the relevant results
-        // $calendar = $this->calendar_m->list_event_by($base_where + array('date'=> $date, 'limit'=> $pagination['limit'], 'order' => 'event_date_begin desc'));
-        $calendar = $this->calendar_m->$this->pyrocache->model('calendar_m', 'list_event_by', array($base_where + array('date'=> $date, 'limit'=> $pagination['limit'], 'order' => 'event_date_begin desc')));
+        // $calendar = $this->calendar_m->list_event_by($base_where + array('date'=> $date, 'limit'=> $pagination['limit'], 'order' => 'event_date_begin desc', 'repeat_setting'=>$this->data->repeat_emersion));
+        $calendar = $this->calendar_m->$this->pyrocache->model('calendar_m', 'list_event_by', array($base_where + array('date'=> $date, 'limit'=> $pagination['limit'], 'order' => 'event_date_begin desc', 'repeat_setting'=>$this->data->repeat_emersion)));
         
         //do we need to unset the layout because the request is ajax?
         $this->input->is_ajax_request() ? $this->template->set_layout(FALSE) : '';
@@ -251,12 +277,12 @@ class Calendar extends Public_Controller {
  
  function _date($srctime){
  	
-	// $this->data->events=$this->calendar_m->get_events($time);
     $year = date('Y', $srctime);
     $month = date('m', $srctime);
     $time = strtotime($year.'-'.$month.'-01');
     
-	$this->data->events = $this->pyrocache->model('calendar_m', 'get_events', array($time, false, true, true));
+	// $this->data->events=$this->calendar_m->get_events($time, false, true, true, $this->data->repeat_emersion );
+	$this->data->events = $this->pyrocache->model('calendar_m', 'get_events', array($time, false, true, true, $this->data->repeat_emersion));
 	
 	$today = date("Y/n/j", time());
 	$this->data->today= $today;

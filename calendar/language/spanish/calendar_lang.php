@@ -31,6 +31,9 @@ $lang['calendar_style_list']                  = 'Lista de eventos';
 $lang['calendar_detail_label']                = 'Detalle del Acontecimiento'; 
 $lang['calendar_date_from']                   = 'De'; 
 $lang['calendar_date_to']                     = 'a'; 
+$lang['calendar_repeat_prev']                 = 'Anterior'; 
+$lang['calendar_repeat_next']                 = 'próximo'; 
+$lang['calendar_repeat_count']                = 'Número de repeticiones'; 
 
 // titles
 $lang['calendar_create_title']               = 'Evento';

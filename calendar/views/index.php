@@ -1,7 +1,6 @@
 <?php echo @$menu_calendar; ?>
 <h3><?php echo lang('calendar_home_label');?></h3>
  <div id="calmain">
-
 	<h2><?php echo $current_month_text; ?></h2>
 	<div class="caltbl">
 		<span class="caltbl_head">
@@ -50,15 +49,23 @@
 							foreach ($events as $key=>$event){
 								if ($key == $day){
 							  	foreach ($event as $single){
-							  	    if(empty($single->event_date_end) or strpos($single->event_date_end, '1970-01-01')){
-							  	        $enddate = '';
-							  	    }else{
-							  	        $enddate = '<br/> End : '.date($dateformat, strtotime($single->event_date_end));
-							  	    
-							  	    }
+									
+									$orimonth = intval(date('m', strtotime($single->event_date_begin)));
+									$strdate = substr($single->event_date_begin, 0, 8).$key.substr($single->event_date_begin, 10, 3);
+									$startdate = $single->event_date_begin;
+									$urldate = substr(str_replace(' ', '-', $startdate), 0, 13);
+									
+									$enddate = '';
+									if(!empty($single->event_repeat_prm)){
+										if(empty($single->event_date_end) or strpos($single->event_date_end, '1970-01-01')){
+											$enddate = '';
+										}else{
+											$enddate = '<br/> End : '.date($dateformat, strtotime($single->event_date_end));
+										}
+									}
 							  	    
 							  		echo '<div class="event_content">'; 					
-									echo '<span class="title">'.$single->event_title.'</span><div class="titledate">Start : '.date($dateformat, strtotime($single->event_date_begin)).$enddate.'</div><span class="desc">'.$single->event_content.'</span>';
+									echo '<span class="title">'.$single->event_title.'</span><div class="titledate">Start : '.date($dateformat, strtotime($startdate)).$enddate.'</div><span class="desc">'.$single->event_content.'</span>';
 									echo '</div>'; 
   								} // end of for each $event
 								}

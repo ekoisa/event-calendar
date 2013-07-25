@@ -430,6 +430,44 @@ class Admin extends Admin_Controller {
 		    }
 		    
             
+            if($this->input->post('set_repeat_weekly_p'))
+		    {
+			    $arr_repeat_prms = array(
+					'daily'=>array($this->input->post('set_repeat_daily_p'),$this->input->post('set_repeat_daily_n')),
+					'weekly'=>array($this->input->post('set_repeat_weekly_p'),$this->input->post('set_repeat_weekly_n')),
+					'monthly'=>array($this->input->post('set_repeat_monthly_p'),$this->input->post('set_repeat_monthly_n')),
+			    ); 
+			    $arr_repeat_prms_json = json_encode($arr_repeat_prms);
+			    $vname = 'modcalendar_repeat_emersion';
+                if(!$v1 = $this->pyrocache->get('calendar_cache'.DIRECTORY_SEPARATOR.'check_name_'.$vname))
+                { 
+                    $v1 = $this->variables_m->check_name($vname);
+                    $this->pyrocache->write($v1, 'calendar_cache'.DIRECTORY_SEPARATOR.'check_name_'.$vname);
+                }
+			    
+			    if($v1 == 0){
+			        $ardata = array(
+				        'name'				=> $vname,
+				        'data'				=> $arr_repeat_prms_json
+				    );
+				    $this->variables_m->insert($ardata);
+				}else{
+                    if(!$v2 = $this->pyrocache->get('calendar_cache'.DIRECTORY_SEPARATOR.'get_by_'.$vname))
+                    { 
+                        $v2 = $this->variables_m->get_by('name', $vname);
+                    }
+				    $ardata = array(
+				        'name'				=> $vname,
+				        'data'				=> $arr_repeat_prms_json
+				    );
+				    $this->variables_m->update($v2->id, $ardata);
+				}
+				$_POST['set_repeat_emersion'] = $arr_repeat_prms_json;
+                
+                $this->pyrocache->delete('calendar_cache'.DIRECTORY_SEPARATOR.'check_name_'.$vname);
+                $this->pyrocache->delete('calendar_cache'.DIRECTORY_SEPARATOR.'get_by_'.$vname);
+        		
+		    }
             
             
 			$this->session->set_flashdata('success', $this->lang->line('member_process_finish'));
@@ -534,6 +572,20 @@ class Admin extends Admin_Controller {
 				$post->set_calendar_dateformat = $v4->data;
 			}else{
 				$post->set_calendar_dateformat = 'M d, Y H:i';
+			}
+			
+			
+			$vname = 'modcalendar_repeat_emersion';
+            if(!$vr = $this->pyrocache->get('calendar_cache'.DIRECTORY_SEPARATOR.'get_by_'.$vname))
+            { 
+                $vr = $this->variables_m->get_by('name', $vname);
+                $this->pyrocache->write($vr, 'calendar_cache'.DIRECTORY_SEPARATOR.'get_by_'.$vname);
+            }
+            
+			if($vr){
+				$post->set_repeat_emersion = $vr->data;
+			}else{
+				$post->set_repeat_emersion = null;
 			}
 		}
 		

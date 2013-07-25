@@ -37,7 +37,7 @@ li.date-meta label.time-meta {
 	color: #444;
 	position: relative;
 	padding:20px 5px; list-style:none;
-	float:left; clear:right;
+	float:left; clear:right; margin: 0 !important;
 }
 
 #calmain .caltbl_head{
@@ -55,7 +55,7 @@ li.date-meta label.time-meta {
 	padding: 3px 5px; height:20px; width: 56px; font-weight: bold; font-size: 14px;
 	float:left; clear:right; text-align: center;
 	background: url(../img/cells_lightgreen_s2.png);
-	color: #444; position: relative; list-style:none;
+	color: #444; position: relative; list-style:none; margin: 0 !important;
 }
 #calmain .caltbl_foot ul {
 	clear:both;

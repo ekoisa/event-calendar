@@ -31,6 +31,9 @@ $lang['calendar_style_list']                  = 'Daftar Agenda';
 $lang['calendar_detail_label']                = 'Deskripsi Agenda'; 
 $lang['calendar_date_from']                   = 'Dari'; 
 $lang['calendar_date_to']                     = 'ke'; 
+$lang['calendar_repeat_prev']                 = 'Sebelum'; 
+$lang['calendar_repeat_next']                 = 'Sesudah'; 
+$lang['calendar_repeat_count']                = 'Jumlah pengulangan'; 
 
 // titles
 $lang['calendar_create_title']               = 'Tambah Agenda';

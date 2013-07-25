@@ -37,12 +37,25 @@ foreach ($data_read as $post):
         $img_sts = "bullet_gray.png";
         $lbl_sts = "Expired";
     }else{
-        $img_sts = "bullet_white.png";
+        $img_sts = "bullet_green.png";
         $lbl_sts = "Live";
     }
+	
+	$date_begin = substr($post->event_date_begin, 0, 13);
+	if(!empty($date_str) and $date_begin != $date_str){
+		$date_start = $date_str.':00:00';
+		$date_end = null;
+	}elseif(!empty($date_str) and $date_begin == $date_str){
+		$date_start = $date_str.':00:00';
+		$date_end = empty($post->event_date_end) ? null : $post->event_date_end;
+	}else{
+		$date_start = $post->event_date_begin;
+		$date_end = empty($post->event_date_end) ? null : $post->event_date_end;
+	}
+	$date_url = substr(str_replace(' ', '-', $date_start), 0, 13);
 ?>
 <div class="calendar_list<?php echo ' '.$class_even; ?>">
-		<div class="calendar_list_heading"><?php echo  anchor('calendar/detail/' .$post->id_eventcal .'/'.preg_replace('{[^0-9-a-zA-Z]+}', '-', $post->event_title), stripslashes($post->event_title)); ?>
+		<div class="calendar_list_heading"><?php echo  anchor('calendar/detail/' .$post->id_eventcal .'/'.$date_url.'.'.preg_replace('{[^0-9-a-zA-Z]+}', '-', $post->event_title), stripslashes($post->event_title)); ?>
         <img style="float:right; clear:left; margin:18px 2px 1px 2px; border:none;" src="<?php echo site_url($this->module_details['path'].'/img/'.$img_sts); ?>" title="<?php echo $lbl_sts; ?>" />
         </div>
 		<p class="calendar_list_info">

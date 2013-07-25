@@ -31,6 +31,9 @@ $lang['calendar_style_list']                  = 'Event List';
 $lang['calendar_detail_label']                = 'Event Detail'; 
 $lang['calendar_date_from']                   = 'Uit'; 
 $lang['calendar_date_to']                     = 'naar'; 
+$lang['calendar_repeat_prev']                 = 'Vorig'; 
+$lang['calendar_repeat_next']                 = 'Volgende'; 
+$lang['calendar_repeat_count']                = 'Aantal herhalingen'; 
 
 // titles
 $lang['calendar_create_title']               = 'Add Event';

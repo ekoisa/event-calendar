@@ -3,10 +3,13 @@
 class Calendar_m extends MY_Model
 {
         
-	function get_events($time, $is_thumb = false, $get_repeated = false, $thismonth = false){
+	function get_events($time, $is_thumb = false, $is_repeat = false, $thismonth = true, $repeat_emersion = array()){
 		
 		$today = date("Y/n/j", time());
 		$current_month = date("n", $time);
+		$curmonth_today = intval(date("n", time()));
+		$curmonth_active = intval($current_month);
+
 		$current_year = date("Y", $time);
 		$current_month_text = date("F Y", $time);
 		$total_days_of_current_month = date("t", $time);
@@ -30,7 +33,7 @@ class Calendar_m extends MY_Model
 		//$strquery1 = $this->db->get_compiled_select($this->db->dbprefix('eventcal'));
 		$query = $this->db->get($this->db->dbprefix('eventcal'));
         
-        if($get_repeated){
+        if($is_repeat){
             $this->db->select(" `id_eventcal`, `user_id`, ".$content." `event_title`, `event_date_begin`, `event_date_end`, `event_repeat`, `event_repeat_prm` ");
             $this->db->select(" DATE_FORMAT(`event_date_begin`,'%d') AS day", FALSE);
             $this->db->where('event_repeat', 1);
@@ -51,13 +54,44 @@ class Calendar_m extends MY_Model
 			if($row_event->event_repeat == 1){
 				$prm = @json_decode($row_event->event_repeat_prm);
 				if(isset($prm->type) and $prm->type == 0){
-                    $event_time = strtotime(date('Y-m-d').' '.$prm->time.':00:00');
-                    if($curtime > $event_time){
-                        $row_event->event_date_begin = date('Y-m-d H:i:s', strtotime(date('Y-m-d').' '.$prm->time.':00:00 +1 day'));
-                    }else{
-                        $row_event->event_date_begin = date('Y-m-d H:i:s', $event_time);
-                    }
-					$curday = date('d', strtotime($row_event->event_date_begin));
+					
+					if(!empty($repeat_emersion) and !empty($repeat_emersion['daily'])){
+						$crep = $repeat_emersion['daily'];
+						$count_d_p = isset($crep[0]) ? intval($crep[0]) : 0;
+						$count_d_n = isset($crep[1]) ? intval($crep[1]) : 1;
+						if($count_d_p > 0){
+							for($cd = 0; $cd < $count_d_p; $cd++){
+								$xday = $count_d_p - $cd;
+								$row_event->event_date_begin = date('Y-m-d H:i:s', strtotime(date('Y-m-d').' '.$prm->time.':00:00 -'.$xday.' day'));
+								$evemonth = intval(date('n', strtotime($row_event->event_date_begin)));
+								if($curmonth_active == $evemonth){
+									$curday = date('d', strtotime($row_event->event_date_begin));
+									$events[intval($curday)][] = $row_event;
+								}
+							}
+						}
+						if($count_d_n > 0){
+							for($cd = 0; $cd < $count_d_n; $cd++){
+								$row_event->event_date_begin = date('Y-m-d H:i:s', strtotime(date('Y-m-d').' '.$prm->time.':00:00 +'.$cd.' day'));
+								$evemonth = intval(date('n', strtotime($row_event->event_date_begin)));
+								if($curmonth_active == $evemonth){
+									$curday = date('d', strtotime($row_event->event_date_begin));
+									$events[intval($curday)][] = $row_event;
+								}
+							}
+						}
+					}else{
+						$event_time = strtotime(date('Y-m-d').' '.$prm->time.':00:00');
+						if($curtime > $event_time){
+							$row_event->event_date_begin = date('Y-m-d H:i:s', strtotime(date('Y-m-d').' '.$prm->time.':00:00 +1 day'));
+						}else{
+							$row_event->event_date_begin = date('Y-m-d H:i:s', $event_time);
+						}
+						$curday = date('d', strtotime($row_event->event_date_begin));
+						$events[intval($curday)][] = $row_event;
+					}
+					
+					
 				}elseif(isset($prm->type) and $prm->type == 1){
 					for($k = 0; $k < 7; $k++){
 						$looptime = strtotime(date('Y-m-d').' +'.$k.' day');
@@ -73,7 +107,39 @@ class Calendar_m extends MY_Model
 							}
 						}
 					}
-					$curday = date('d', strtotime($row_event->event_date_begin));
+					
+					if(!empty($repeat_emersion) and !empty($repeat_emersion['weekly'])){
+						$crep = $repeat_emersion['weekly'];
+						$count_d_p = isset($crep[0]) ? intval($crep[0]) : 0;
+						$count_d_n = isset($crep[1]) ? intval($crep[1]) : 1;
+						$curdate = substr($row_event->event_date_begin, 0, 10);
+						if($count_d_p > 0){
+							for($cd = 0; $cd < $count_d_p; $cd++){
+								$xday = ($count_d_p - $cd) * 7;
+								$row_event->event_date_begin = date('Y-m-d H:i:s', strtotime($curdate.' '.$prm->time.':00:00 -'.$xday.' day'));
+								$curmonth = intval(date('n', strtotime($row_event->event_date_begin)));
+								if($curmonth_active == $curmonth){
+									$curday = date('d', strtotime($row_event->event_date_begin));
+									$events[intval($curday)][] = $row_event;
+								}
+							}
+						}
+						if($count_d_n > 0){
+							for($cd = 0; $cd < $count_d_n; $cd++){
+								$xday = $cd * 7;
+								$row_event->event_date_begin = date('Y-m-d H:i:s', strtotime($curdate.' '.$prm->time.':00:00 +'.$xday.' day'));
+								$curmonth = intval(date('n', strtotime($row_event->event_date_begin)));
+								if($curmonth_active == $curmonth){
+									$curday = date('d', strtotime($row_event->event_date_begin));
+									$events[intval($curday)][] = $row_event;
+								}
+							}
+						}
+					}else{
+						$curday = date('d', strtotime($row_event->event_date_begin));
+						$events[intval($curday)][] = $row_event;
+					}
+					
 				}elseif(isset($prm->type) and $prm->type == 2){
 					$event_time = strtotime(date('Y-m-').$prm->date.' '.$prm->time.':00:00');
 					$lasmonthtime = strtotime(date('Y-m-').'01 23:00:00 +1 month -1 day');
@@ -83,10 +149,41 @@ class Calendar_m extends MY_Model
 						$row_event->event_date_begin = date('Y-m-d H:i:s', strtotime(date('Y-m-').$prm->date.' '.$prm->time.':00:00 +1 month'));
 					}
 				
-					$curday = date('d', strtotime($row_event->event_date_begin));
+					if(!empty($repeat_emersion) and !empty($repeat_emersion['monthly']) and !$thismonth){
+						$crep = $repeat_emersion['monthly'];
+						$count_d_p = isset($crep[0]) ? intval($crep[0]) : 0;
+						$count_d_n = isset($crep[1]) ? intval($crep[1]) : 1;
+						$curdate = substr($row_event->event_date_begin, 0, 10);
+						if($count_d_p > 0){
+							for($cd = 0; $cd < $count_d_p; $cd++){
+								$xday = $count_d_p - $cd;
+								$row_event->event_date_begin = date('Y-m-d H:i:s', strtotime($curdate.' '.$prm->time.':00:00 -'.$xday.' month'));
+								$curmonth = intval(date('n', strtotime($row_event->event_date_begin)));
+								if($curmonth_active == $curmonth){
+									$curday = date('d', strtotime($row_event->event_date_begin));
+									$events[intval($curday)][] = $row_event;
+								}
+							}
+						}
+						if($count_d_n > 0){
+							for($cd = 0; $cd < $count_d_n; $cd++){
+								$xday = $cd;
+								$row_event->event_date_begin = date('Y-m-d H:i:s', strtotime($curdate.' '.$prm->time.':00:00 +'.$xday.' month'));
+								$curmonth = intval(date('n', strtotime($row_event->event_date_begin)));
+								if($curmonth_active == $curmonth){
+									$curday = date('d', strtotime($row_event->event_date_begin));
+									$events[intval($curday)][] = $row_event;
+								}
+							}
+						}
+					}else{
+						$curday = date('d', strtotime($row_event->event_date_begin));
+						$events[intval($curday)][] = $row_event;
+					}
+					
 				}
 				
-				$events[intval($curday)][] = $row_event;
+				
 			}else{
 				$events[intval($row_event->day)][] = $row_event;
 			}
@@ -95,6 +192,18 @@ class Calendar_m extends MY_Model
 		return $events;						
 	}
 	
+	
+	private function __assign_repeated($data = null, $remer = array())
+        {
+            $result=$this->db->insert($this->db->dbprefix('eventcal'),$data);
+
+            //check if the insertion is ok
+            if($result)
+                return $this->db->insert_id();
+            else
+                return false;
+		
+	}
 	
 	function add_event($data = array())
         {
@@ -253,6 +362,11 @@ class Calendar_m extends MY_Model
 		
 		
         if(!empty($prm['getrepeat']) and $prm['getrepeat'] == 1){
+			$repset = null;
+			if(!empty($prm['repeat_setting'])){
+				$repset = $prm['repeat_setting'];
+			}
+			
 			$this->db->select($this->db->dbprefix('eventcal').".*, ".$this->db->dbprefix('profiles').".display_name ");
 			$this->db->join($this->db->dbprefix('profiles'), $this->db->dbprefix('profiles').".user_id = ".$this->db->dbprefix('eventcal').".user_id ", 'left');
 			
@@ -283,46 +397,119 @@ class Calendar_m extends MY_Model
 			$rquery1 = $query1->result();
             $rquery2 = $query2->result();
 			
+			$represult = array();
+			
 			$curtime = time();
-			foreach($rquery2 as $key => $row_event){
-				$prm = @json_decode($row_event->event_repeat_prm);
-				if(isset($prm->type) and $prm->type == 0){
-                    $event_time = strtotime(date('Y-m-d').' '.$prm->time.':00:00');
-                    if($curtime > $event_time){
-                        $row_event->event_date_begin = date('Y-m-d H:i:s', strtotime(date('Y-m-d').' '.$prm->time.':00:00 +1 day'));
-                    }else{
-                        $row_event->event_date_begin = date('Y-m-d H:i:s', $event_time);
-                    }
-				}elseif(isset($prm->type) and $prm->type == 1){
-					for($k = 0; $k < 7; $k++){
-						$looptime = strtotime(date('Y-m-d').' +'.$k.' day');
-						
-						if(date('w', $looptime) == $prm->day){
-							$event_time = strtotime(date('Y-m-d').' '.$prm->time.':00:00'.' +'.$k.' day');
-							if($curtime <= $event_time){
-								$row_event->event_date_begin = date('Y-m-d H:i:s', $event_time);
-								break;
+			if(count($rquery2) > 0){
+				foreach($rquery2 as $key => $row_event){
+					$prm = @json_decode($row_event->event_repeat_prm);
+					if(isset($prm->type) and $prm->type == 0){
+						if(!empty($repset) and !empty($repset['daily'])){
+							$crep = $repset['daily'];
+							$count_d_p = isset($crep[0]) ? intval($crep[0]) : 0;
+							$count_d_n = isset($crep[1]) ? intval($crep[1]) : 1;
+							if($count_d_p > 0){
+								for($cd = 0; $cd < $count_d_p; $cd++){
+									$xday = $count_d_p - $cd;
+									$row_event->event_date_begin = date('Y-m-d H:i:s', strtotime(date('Y-m-d').' '.$prm->time.':00:00 -'.$xday.' day'));
+									$represult[] = $this->__setEventRow($row_event, $row_event->event_date_begin);
+								}
+							}
+							if($count_d_n > 0){
+								for($cd = 0; $cd < $count_d_n; $cd++){
+									$row_event->event_date_begin = date('Y-m-d H:i:s', strtotime(date('Y-m-d').' '.$prm->time.':00:00 +'.$cd.' day'));
+									$represult[] = $this->__setEventRow($row_event, $row_event->event_date_begin);
+								}
+							}
+
+						}else{
+							$event_time = strtotime(date('Y-m-d').' '.$prm->time.':00:00');
+							if($curtime > $event_time){
+								$row_event->event_date_begin = date('Y-m-d H:i:s', strtotime(date('Y-m-d').' '.$prm->time.':00:00 +1 day'));
 							}else{
-								$row_event->event_date_begin = date('Y-m-d H:i:s', strtotime(date('Y-m-d').' '.$prm->time.':00:00'.' +'.($k+7).' day'));
-								break;
+								$row_event->event_date_begin = date('Y-m-d H:i:s', $event_time);
+							}
+							
+							$represult[] = $row_event;
+						}
+					
+					}elseif(isset($prm->type) and $prm->type == 1){
+						for($k = 0; $k < 7; $k++){
+							$looptime = strtotime(date('Y-m-d').' +'.$k.' day');
+							
+							if(date('w', $looptime) == $prm->day){
+								$event_time = strtotime(date('Y-m-d').' '.$prm->time.':00:00'.' +'.$k.' day');
+								if($curtime <= $event_time){
+									$row_event->event_date_begin = date('Y-m-d H:i:s', $event_time);
+									break;
+								}else{
+									$row_event->event_date_begin = date('Y-m-d H:i:s', strtotime(date('Y-m-d').' '.$prm->time.':00:00'.' +'.($k+7).' day'));
+									break;
+								}
 							}
 						}
+						
+						if(!empty($repset) and !empty($repset['weekly'])){
+							$crep = $repset['weekly'];
+							$count_d_p = isset($crep[0]) ? intval($crep[0]) : 0;
+							$count_d_n = isset($crep[1]) ? intval($crep[1]) : 1;
+							$curdate = substr($row_event->event_date_begin, 0, 10);
+							if($count_d_p > 0){
+								for($cd = 0; $cd < $count_d_p; $cd++){
+									$xday = ($count_d_p - $cd) * 7;
+									$row_event->event_date_begin = date('Y-m-d H:i:s', strtotime($curdate.' '.$prm->time.':00:00 -'.$xday.' day'));
+									
+									$represult[] = $this->__setEventRow($row_event, $row_event->event_date_begin);
+								}
+							}
+							if($count_d_n > 0){
+								for($cd = 0; $cd < $count_d_n; $cd++){
+									$xday = $cd * 7;
+									$row_event->event_date_begin = date('Y-m-d H:i:s', strtotime($curdate.' '.$prm->time.':00:00 +'.$xday.' day'));
+									
+									$represult[] = $this->__setEventRow($row_event, $row_event->event_date_begin);
+								}
+							}
+						}else{
+							$represult[] = $row_event;
+						}
+					}elseif(isset($prm->type) and $prm->type == 2){
+						$event_time = strtotime(date('Y-m-').$prm->date.' '.$prm->time.':00:00');
+						$lasmonthtime = strtotime(date('Y-m-').'01 23:00:00 +1 month -1 day');
+						if($event_time <= $lasmonthtime){
+							$row_event->event_date_begin = date('Y-m-d H:i:s', $event_time);
+						}elseif(!$thismonth){
+							$row_event->event_date_begin = date('Y-m-d H:i:s', strtotime(date('Y-m-').$prm->date.' '.$prm->time.':00:00 +1 month'));
+						}
+						
+						if(!empty($repset) and !empty($repset['monthly'])){
+							$crep = $repset['monthly'];
+							$count_d_p = isset($crep[0]) ? intval($crep[0]) : 0;
+							$count_d_n = isset($crep[1]) ? intval($crep[1]) : 1;
+							$curdate = substr($row_event->event_date_begin, 0, 10);
+							if($count_d_p > 0){
+								for($cd = 0; $cd < $count_d_p; $cd++){
+									$xday = $count_d_p - $cd;
+									$row_event->event_date_begin = date('Y-m-d H:i:s', strtotime($curdate.' '.$prm->time.':00:00 -'.$xday.' month'));
+									$represult[] = $this->__setEventRow($row_event, $row_event->event_date_begin);
+								}
+							}
+							if($count_d_n > 0){
+								for($cd = 0; $cd < $count_d_n; $cd++){
+									$xday = $cd;
+									$row_event->event_date_begin = date('Y-m-d H:i:s', strtotime($curdate.' '.$prm->time.':00:00 +'.$xday.' month'));
+									$represult[] = $this->__setEventRow($row_event, $row_event->event_date_begin);
+								}
+							}
+						}else{
+							$represult[] = $row_event;
+						}
 					}
-				}elseif(isset($prm->type) and $prm->type == 2){
-					$event_time = strtotime(date('Y-m-').$prm->date.' '.$prm->time.':00:00');
-					$lasmonthtime = strtotime(date('Y-m-').'01 23:00:00 +1 month -1 day');
-					if($event_time <= $lasmonthtime){
-						$row_event->event_date_begin = date('Y-m-d H:i:s', $event_time);
-					}elseif(!$thismonth){
-						$row_event->event_date_begin = date('Y-m-d H:i:s', strtotime(date('Y-m-').$prm->date.' '.$prm->time.':00:00 +1 month'));
-					}
-				
+					
 				}
-				
-				$rquery2[$key] = $row_event;
 			}
 			
-			$rquery = (object)array_merge((array)$rquery2, (array)$rquery1);
+			$rquery = (object)array_merge((array)$represult, (array)$rquery1);
 		}else{
             $rquery = $query1->result();
         }
@@ -330,6 +517,20 @@ class Calendar_m extends MY_Model
 		return $rquery;
 	}
     
+	private function __setEventRow($data, $newDateBegin = ""){
+		$curCls = new stdClass();
+		if(count($data) > 0){
+			foreach($data as $k1 => $r1){
+				if($k1 == 'event_date_begin'){
+					$curCls->{$k1} = $newDateBegin;
+				}else{
+					$curCls->{$k1} = $r1;
+				}
+			}
+		}
+		return $curCls;
+	}
+	
 	function updateEvent(){
 		
 		$data = array(
