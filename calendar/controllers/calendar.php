@@ -158,6 +158,9 @@ class Calendar extends Public_Controller {
                     $year = '0'; $month = '0'; $day = '0';
                 }
             }
+            if(!isset($arprm['getrepeat'])){
+		$arprm['getrepeat'] = 1;
+	    }
             // echo "<br/>dbg3<br/>";
             // print_r($arprm);
         }
