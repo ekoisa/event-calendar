@@ -22,7 +22,7 @@ class Calendar_m extends MY_Model
         $this->db->select(" `id_eventcal`, `user_id`, ".$content." `event_title`, `event_date_begin`, `event_date_end`, `event_repeat`, `event_repeat_prm` ");
         $this->db->select(" DATE_FORMAT(`event_date_begin`,'%d') AS day", FALSE);
         $this->db->where('event_repeat', 0);
-        $str_where = 'event_date_begin BETWEEN \''.$current_year.'-'.$current_month.'-01\'  AND \''.$current_year.'-'.$current_month.'-'.$total_days_of_current_month.'\' ';
+        $str_where = 'event_date_begin BETWEEN \''.$current_year.'-'.$current_month.'-01\'  AND \''.$current_year.'-'.$current_month.'-'.$total_days_of_current_month.' 23:59:59\' ';
 		$this->db->where($str_where);
 		
 		//$this->db->where(" event_date_begin >=",  $current_year."/".$current_month."/01");
